@@ -94,8 +94,8 @@ apt-get install -y git
 Clona o copia los scripts al servidor:
 
 ```bash
-git clone https://github.com/DaFrik19/DDNOV2025.git /opt/DDNOV2025
-cd /opt/DDNOV2025/scripts
+git clone https://github.com/myn4rd/DD2026.git /opt/DD2026
+cd /opt/DD2026/scripts
 ```
 
 > Los scripts detectan automáticamente si el SO es Rocky/RHEL o Ubuntu/Debian
@@ -184,13 +184,13 @@ las credenciales por consola. Cuando aparezca `Cifrado finalizado`, espera
 
 1. Instala Java 17 y Git
 2. Crea el usuario de sistema `ameribank` (sin shell, sin home) — no corre como root
-3. Clona el repo en `/opt/DDNOV2025` y compila con `./mvnw`
+3. Clona el repo en `/opt/DD2026` y compila con `./mvnw`
 4. Verifica conectividad TCP con `VM-DB:3306` antes de continuar
 5. Lanza el JAR **una sola vez** con `-Ddb.host=192.168.100.20` para que el cifrador
    RSA incluya la IP correcta en las credenciales encriptadas
 6. Instala el servicio `systemd` con la unidad:
    ```
-   ExecStart=/usr/bin/java -Ddb.host=192.168.100.20 -Ddb.port=3306 -jar /opt/DDNOV2025/target/Ameribank-*.jar
+   ExecStart=/usr/bin/java -Ddb.host=192.168.100.20 -Ddb.port=3306 -jar /opt/DD2026/target/Ameribank-*.jar
    StandardOutput=append:/var/log/ameribank/principal/ameribank.log
    ```
 7. Abre el firewall en el puerto `8081` desde la subred indicada

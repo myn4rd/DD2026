@@ -35,8 +35,8 @@ set -euo pipefail
 
 # ---------- Defaults ----------
 ROLE=""              # Requerido: 'principal' o 'backup'
-REPO_URL="https://github.com/DaFrik19/DDNOV2025.git"
-APP_DIR="/opt/DDNOV2025"
+REPO_URL="https://github.com/myn4rd/DD2026.git"
+APP_DIR="/opt/DD2026"
 DB_HOST=""           # Requerido: IP de la VM de MySQL (VM-DB)
 DB_PORT="3306"
 DB_NAME="Ameribank"

@@ -234,8 +234,8 @@ dnf install java-17-openjdk java-17-openjdk-devel git -y
 
 ```bash
 cd /opt
-git clone https://github.com/DaFrik19/DDNOV2025.git
-cd DDNOV2025
+git clone https://github.com/myn4rd/DD2026.git
+cd DD2026
 chmod +x mvnw
 ./mvnw clean package -DskipTests
 ```
@@ -282,8 +282,8 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/DDNOV2025
-ExecStart=/usr/bin/java -jar /opt/DDNOV2025/target/Ameribank-0.0.1-SNAPSHOT.jar
+WorkingDirectory=/opt/DD2026
+ExecStart=/usr/bin/java -jar /opt/DD2026/target/Ameribank-0.0.1-SNAPSHOT.jar
 StandardOutput=append:/mnt/splunk-logs/ameribank.log
 StandardError=append:/mnt/splunk-logs/ameribank.log
 Restart=on-failure

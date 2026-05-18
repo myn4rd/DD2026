@@ -24,8 +24,8 @@ set -euo pipefail
 
 # ---------- Defaults ----------
 ROLE=""
-REPO_URL="https://github.com/DaFrik19/DDNOV2025.git"
-APP_DIR="/opt/DDNOV2025"
+REPO_URL="https://github.com/myn4rd/DD2026.git"
+APP_DIR="/opt/DD2026"
 DB_NAME="Ameribank"
 DB_USER="ameribank"
 DB_PASS=""
