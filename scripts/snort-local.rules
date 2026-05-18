@@ -1,0 +1,53 @@
+# =====================================================================
+# Ameribank - Reglas locales de Snort para el LXC del IPS (40.0.4.13)
+# Modo inline (-Q --daq nfq), protege al LXC 2 (backup) en 40.0.4.11
+#
+# Diferencia vs. la versión inicial del INFRAESTRUCTURA.md:
+#  - HTTP flood ahora es `drop`, no `alert`
+#  - Regla de drop separada por método HTTP (no por flag SYN)
+#  - SYN flood se queda como respaldo
+#  - Threshold ajustado: count 100/10s era muy permisivo
+# =====================================================================
+
+# --------- SYN flood (respaldo, por si el atacante combina vectores) ---------
+alert tcp any any -> $HOME_NET 8081 (msg:"SYN Flood detectado"; \
+    flags:S; \
+    threshold:type both, track by_src, count 100, seconds 10; \
+    sid:1000001; rev:2;)
+
+drop tcp any any -> $HOME_NET 8081 (msg:"SYN Flood bloqueado"; \
+    flags:S; \
+    threshold:type both, track by_src, count 100, seconds 10; \
+    sid:1000010; rev:1;)
+
+# --------- HTTP GET flood ---------
+# Notar: contamos sobre flujo establecido (ya completó handshake),
+# no sobre bandera SYN. Threshold bajado a 30/5s porque tomcat con
+# 200 threads + DAO sin pool se cae rápido.
+alert tcp any any -> $HOME_NET 8081 (msg:"HTTP GET Flood detectado"; \
+    flow:to_server,established; \
+    content:"GET"; http_method; \
+    threshold:type both, track by_src, count 30, seconds 5; \
+    sid:1000002; rev:2;)
+
+drop tcp any any -> $HOME_NET 8081 (msg:"HTTP GET Flood bloqueado"; \
+    flow:to_server,established; \
+    content:"GET"; http_method; \
+    threshold:type both, track by_src, count 30, seconds 5; \
+    sid:1000003; rev:2;)
+
+# --------- HTTP POST flood (los login spam) ---------
+drop tcp any any -> $HOME_NET 8081 (msg:"HTTP POST Flood bloqueado"; \
+    flow:to_server,established; \
+    content:"POST"; http_method; \
+    threshold:type both, track by_src, count 20, seconds 5; \
+    sid:1000004; rev:1;)
+
+# --------- Slowloris (cinturón y tirantes) ---------
+# Detecta requests con headers incompletos (sin \r\n\r\n al final)
+drop tcp any any -> $HOME_NET 8081 (msg:"Slowloris bloqueado"; \
+    flow:to_server,established; \
+    content:"GET"; http_method; \
+    content:!"|0d 0a 0d 0a|"; \
+    threshold:type both, track by_src, count 30, seconds 30; \
+    sid:1000005; rev:1;)

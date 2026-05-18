@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cuenta - Ameribank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .mensaje {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+        .mensaje.exito {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .mensaje.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>💳 Registrar Cuenta</h1>
+
+    <form id="registroForm">
+        <div class="form-group">
+            <label>Número de Cuenta</label>
+            <input type="text" name="numeroCuenta" placeholder="Ej: 1234567890" required>
+        </div>
+
+        <div class="form-group">
+            <label>Tipo de Cuenta</label>
+            <select name="tipoCuenta" required>
+                <option value="">Seleccione...</option>
+                <option value="AHORRO">Ahorro</option>
+                <option value="NOMINA">Nómina</option>
+                <option value="INVERSION">Inversión</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Saldo Inicial</label>
+            <input type="number" name="saldo" step="0.01" min="0" placeholder="0.00" required>
+        </div>
+
+        <div class="form-group">
+            <label>Estado de la Cuenta</label>
+            <select name="estado" required>
+                <option value="">Seleccione...</option>
+                <option value="ACTIVO">Activa</option>
+                <option value="INACTIVO">Inactiva</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>ID del Cliente</label>
+            <input type="number" name="clienteId" placeholder="Ej: 1" required>
+        </div>
+
+        <button type="submit">Registrar Cuenta</button>
+    </form>
+
+    <div id="mensaje" class="mensaje"></div>
+
+    <a href="/index.html" class="back-link">← Volver al inicio</a>
+</div>
+
+<script>
+    document.getElementById('registroForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const params = new URLSearchParams(formData);
+
+        const mensajeDiv = document.getElementById('mensaje');
+
+        try {
+            const response = await fetch('/api/cuentas/registrar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params
+            });
+
+            const texto = await response.text();
+
+            mensajeDiv.textContent = texto;
+            mensajeDiv.className = 'mensaje ' + (response.ok ? 'exito' : 'error');
+            mensajeDiv.style.display = 'block';
+
+            if (response.ok) {
+                e.target.reset();
+            }
+
+        } catch (error) {
+            mensajeDiv.textContent = 'Error de conexión con el servidor';
+            mensajeDiv.className = 'mensaje error';
+            mensajeDiv.style.display = 'block';
+        }
+    });
+</script>
+</body>
+</html>

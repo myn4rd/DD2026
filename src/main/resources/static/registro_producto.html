@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Productos Financieros - Ameribank</title>
+    <style>
+        /* Estilos básicos para que se vea limpio */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin: 8px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info-card { border: 1px solid #007bff; padding: 15px; margin-top: 15px; border-radius: 5px; background-color: #e6f0ff; }
+        h1, h2 { color: #036666; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Gestión de Productos Financieros</h1>
+    <p>Simulador bancario de Universidad Amerike</p>
+
+    <hr>
+
+    <h2>1. 🟢 Alta de Nueva Tarjeta (Registro)</h2>
+    <p>Utiliza este formulario para dar de alta una nueva tarjeta de crédito.</p>
+
+    <form id="altaForm">
+        <input type="text" name="tipoProducto" value="TARJETA DE CREDITO" readonly required><br>
+        <input type="text" name="numeroTarjeta" placeholder="Número Tarjeta (Único: 4567...)" required><br>
+        <input type="number" name="limiteCredito" step="0.01" placeholder="Límite de Crédito (Ej: 25000.00)" required><br>
+        <input type="number" name="clienteId" placeholder="ID del Cliente " required><br>
+
+        <button type="submit" style="background-color: #28a745;">
+            Registrar Tarjeta
+        </button>
+    </form>
+
+    <hr>
+
+    <h2>2. 🔎 Consulta de Saldo y Límite</h2>
+    <p>Introduce el número de tarjeta para ver su saldo actual y límite.</p>
+
+    <form id="consultaForm">
+        <input type="text" name="numeroTarjeta" placeholder="Número de Tarjeta (4567...)" required><br>
+
+        <button type="submit">
+            Consultar Tarjeta
+        </button>
+    </form>
+
+    <div id="resultado">
+        <h3>Resultado de Operación:</h3>
+        <p>Esperando acción...</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const resultadoDiv = document.getElementById('resultado');
+
+        // Función para mostrar mensajes de forma consistente
+        const mostrarResultado = (titulo, mensaje, esExito) => {
+            const clase = esExito ? 'success' : 'error';
+            resultadoDiv.innerHTML = `<h3>${titulo}</h3><p class="${clase}">${mensaje}</p>`;
+        };
+
+        // --- MANEJO DE ALTA DE TARJETA ---
+        document.getElementById('altaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const data = Object.fromEntries(new FormData(form).entries());
+
+            // Añadir campos fijos (para cumplir con el constructor o SP)
+            data.saldoActual = '0.00';
+
+            // Endpoint: POST /api/productos/tarjetas/alta (Esta URL es correcta)
+            try {
+                const response = await fetch('/api/productos/tarjetas/alta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const text = await response.text();
+
+                if (response.ok) {
+                    mostrarResultado("Éxito de Registro", `Tarjeta ${data.numeroTarjeta} registrada. ${text}`, true);
+                    form.reset();
+                } else {
+                    mostrarResultado("Error de Registro", `Falló al registrar: ${text}`, false);
+                    console.error("Error del servidor:", text);
+                }
+            } catch (error) {
+                mostrarResultado("Error de Conexión", "No se pudo conectar al servidor Spring Boot o hubo un error de red.", false);
+            }
+        });
+
+        // --- MANEJO DE CONSULTA DE SALDO Y LÍMITE ---
+        document.getElementById('consultaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const numeroTarjeta = form.numeroTarjeta.value;
+
+            //  CORRECCIÓN CRÍTICA: Se eliminó /tarjetas para coincidir con el Controller /api/productos/consulta/{num}
+            try {
+                const response = await fetch(`/api/productos/consulta/${numeroTarjeta}`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    const producto = await response.json();
+                    if (producto.numeroTarjeta) { // Usamos numeroTarjeta para verificar que el objeto no esté vacío
+                        const mensaje = `
+                            <div class="info-card">
+                                <strong>Tarjeta:</strong> ${producto.numeroTarjeta}<br>
+                                <strong>Tipo:</strong> ${producto.tipoProducto}<br>
+                                <strong>Saldo Actual:</strong> $${producto.saldoActual}<br>
+                                <strong>Límite de Crédito:</strong> $${producto.limiteCredito}
+                            </div>
+                        `;
+                        mostrarResultado("Consulta Exitosa", mensaje, true);
+                    } else {
+                        // En caso de que la respuesta sea 200 pero el JSON esté vacío o incompleto (menos probable)
+                        mostrarResultado("Tarjeta No Encontrada", `No se encontró el producto con el número ${numeroTarjeta}.`, false);
+                    }
+                } else {
+                    const text = await response.text();
+                    // Si el estado es 404, el mensaje de error del backend debería mostrar 'Tarjeta no encontrada'
+                    mostrarResultado("Error de Consulta", `Falló al buscar: ${text}`, false);
+                }
+            } catch (error) {
+                mostrarResultado("Error de Conexión", "No se pudo conectar para la consulta.", false);
+            }
+        });
+    });
+</script>
+</body>
+</html>

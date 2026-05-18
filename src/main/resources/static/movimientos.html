@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Movimientos - Amerike Bank</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 20px 0;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand {
+            color: #00cc99;
+            font-weight: bold;
+            font-size: 28px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        h2 {
+            color: #003366;
+            border-bottom: 2px solid #00cc99;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #003366;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            border-color: #00cc99;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 204, 153, 0.2);
+        }
+
+        .btn {
+            background-color: #00cc99;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background-color: #009977;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #003366;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 20px 0;
+            border-top: 1px solid #ddd;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1><span class="brand">Amerike Bank</span> - Gestión de Movimientos</h1>
+    </div>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="section-title">
+            <h2>Realizar Operación</h2>
+        </div>
+
+        <form id="movimientoForm">
+            <div class="form-group">
+                <label for="tipoOperacion">Tipo de Operación:</label>
+                <select id="tipoOperacion" name="tipoOperacion">
+                    <option value="RETIRO">Retiro</option>
+                    <option value="DEPOSITO">Depósito</option>
+                    <option value="TRANSFERENCIA">Transferencia</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="numeroCuenta" id="labelNumeroCuenta">Número de Cuenta:</label>
+                <input type="text" id="numeroCuenta" name="numeroCuenta" placeholder="Ej: 1111111111">
+            </div>
+
+            <div class="form-group hidden" id="campoCuentaDestino">
+                <label for="cuentaDestino">Cuenta Destino (Número):</label>
+                <input type="text" id="cuentaDestino" name="cuentaDestino">
+            </div>
+
+            <div class="form-group hidden" id="campoCuentaRemitente">
+                <label for="cuentaRemitente">Cuenta Remitente:</label>
+                <input type="text" id="cuentaRemitente" name="cuentaRemitente">
+            </div>
+
+            <div class="form-group">
+                <label for="monto">Monto:</label>
+                <input type="text" id="monto" name="monto">
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion">Descripción:</label>
+                <input type="text" id="descripcion" name="descripcion">
+            </div>
+
+            <button type="submit" class="btn">Realizar Operación</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="section-title">
+            <h2>Consultar Historial</h2>
+        </div>
+
+        <div class="form-group">
+            <label for="consultaNumeroCuenta">Número de Cuenta a consultar:</label>
+            <input type="text" id="consultaNumeroCuenta" placeholder="Ej: 1111111111">
+            <div class="btn-group">
+                <button id="btnConsultar" class="btn">Consultar</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="consultaMovimientoId">Buscar Recibo Específico (ID Transacción):</label>
+            <input type="text" id="consultaMovimientoId" placeholder="Ej: 15">
+            <div class="btn-group">
+                <button id="btnConsultarPorId" class="btn">Buscar Recibo</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID Mov.</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Remitente</th>
+                <th>Receptor</th>
+            </tr>
+            </thead>
+            <tbody id="historialBody">
+            <tr>
+                <td colspan="7" style="text-align: center;">No hay datos para mostrar</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2023 Amerike Bank - Todos los derechos reservados</p>
+    </div>
+</footer>
+
+<script>
+    const tipoOperacionSelect = document.getElementById('tipoOperacion');
+    const campoCuentaDestino = document.getElementById('campoCuentaDestino');
+    const campoCuentaRemitente = document.getElementById('campoCuentaRemitente');
+    const labelNumeroCuenta = document.getElementById('labelNumeroCuenta');
+
+    tipoOperacionSelect.addEventListener('change', function() {
+        const tipo = this.value;
+        campoCuentaDestino.classList.add('hidden');
+        campoCuentaRemitente.classList.add('hidden');
+
+        if (tipo === 'RETIRO') {
+            labelNumeroCuenta.textContent = 'Número de Cuenta:';
+        } else if (tipo === 'DEPOSITO') {
+            labelNumeroCuenta.textContent = 'Número de Cuenta (Receptora):';
+            campoCuentaRemitente.classList.remove('hidden');
+        } else if (tipo === 'TRANSFERENCIA') {
+            labelNumeroCuenta.textContent = 'Número de Cuenta (Origen):';
+            campoCuentaDestino.classList.remove('hidden');
+        }
+    });
+    tipoOperacionSelect.dispatchEvent(new Event('change'));
+
+    document.getElementById('movimientoForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const tipo = document.getElementById('tipoOperacion').value;
+        const formData = new FormData();
+        let url = '';
+        const numCuentaOperacion = document.getElementById('numeroCuenta').value;
+
+        if (tipo === 'RETIRO') {
+            url = '/api/movimientos/retiro';
+            formData.append('numeroCuenta', numCuentaOperacion);
+            formData.append('monto', document.getElementById('monto').value);
+            formData.append('descripcion', document.getElementById('descripcion').value);
+
+        } else if (tipo === 'DEPOSITO') {
+            url = '/api/movimientos/deposito';
+            formData.append('numeroCuenta', numCuentaOperacion);
+            formData.append('monto', document.getElementById('monto').value);
+            formData.append('descripcion', document.getElementById('descripcion').value);
+            formData.append('cuentaRemitente', document.getElementById('cuentaRemitente').value);
+
+        } else if (tipo === 'TRANSFERENCIA') {
+            url = '/api/movimientos/transferencia';
+            formData.append('cuentaOrigen', numCuentaOperacion);
+            formData.append('cuentaDestino', document.getElementById('cuentaDestino').value);
+            formData.append('monto', document.getElementById('monto').value);
+            formData.append('descripcion', document.getElementById('descripcion').value);
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.status === 'success') {
+                    showAlert('Éxito: ' + data.message, 'success');
+                    // Auto-llenar consulta y buscar
+                    document.getElementById('consultaNumeroCuenta').value = numCuentaOperacion;
+                    consultarHistorial();
+                } else {
+                    showAlert('Error: ' + (data.message || 'Error desconocido'), 'error');
+                }
+            } else {
+                showAlert('Error del Servidor: ' + (data.message || 'Sin mensaje'), 'error');
+            }
+        } catch (error) {
+            showAlert('ERROR FATAL: ' + error.message, 'error');
+        }
+    });
+
+    // Función de consulta general
+    async function consultarHistorial() {
+        const numeroCuenta = document.getElementById('consultaNumeroCuenta').value;
+        const tbody = document.getElementById('historialBody');
+        tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+
+        try {
+            const response = await fetch(`/api/movimientos/consulta?numeroCuenta=${numeroCuenta}&limite=20`);
+            if (!response.ok) throw new Error('Error en consulta');
+            const movimientos = await response.json();
+            popularTabla(movimientos);
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
+        }
+    }
+
+    // Función de consulta por ID de Recibo
+    async function consultarPorId() {
+        const movId = document.getElementById('consultaMovimientoId').value;
+        const tbody = document.getElementById('historialBody');
+        tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+
+        try {
+            const response = await fetch(`/api/movimientos/consulta/por-id?movimientoId=${movId}`);
+            if (!response.ok) throw new Error('Error en consulta');
+            const movimientos = await response.json();
+            popularTabla(movimientos);
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
+        }
+    }
+
+    function popularTabla(movimientos) {
+        const tbody = document.getElementById('historialBody');
+        tbody.innerHTML = '';
+        if (!movimientos || movimientos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7">No se encontraron movimientos.</td></tr>';
+            return;
+        }
+        movimientos.forEach(mov => {
+            const tr = document.createElement('tr');
+            const fecha = new Date(mov.fechaMovimiento).toLocaleString('es-ES');
+            tr.innerHTML = `
+                <td>${mov.id}</td>
+                <td>${fecha}</td>
+                <td>${mov.tipoMovimiento}</td>
+                <td>${mov.monto}</td>
+                <td>${mov.descripcion}</td>
+                <td>${mov.cuentaRemitente || '-'}</td>
+                <td>${mov.cuentaReceptora || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function showAlert(message, type) {
+        // Eliminar alertas anteriores
+        const existingAlert = document.querySelector('.alert');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+
+        // Insertar después del header
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        // Auto-eliminar después de 5 segundos
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    document.getElementById('btnConsultar').addEventListener('click', consultarHistorial);
+    document.getElementById('btnConsultarPorId').addEventListener('click', consultarPorId);
+</script>
+</body>
+</html>

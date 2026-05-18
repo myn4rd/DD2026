@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulacion de Cobros - Ameribank</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>Simulacion de Cobros de <span class="brand">Ameribank</span></h1>
+    <p>Gestion de cobros de tarjetas de credito</p>
+</header>
+
+<main style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+
+    <!-- TARJETAS DISPONIBLES -->
+    <section style="background: white; padding: 30px; margin: 30px auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color: #003366; text-align: center; margin-bottom: 10px;">Tarjetas Disponibles</h2>
+        <p style="color: #666; text-align: center; margin-bottom: 30px;">Consulta las tarjetas registradas para simular tus cobros</p>
+
+        <div id="tarjetas-lista" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;"></div>
+    </section>
+
+    <!-- FORMULARIO DE COBRO -->
+    <section style="background: white; padding: 40px; margin: 30px auto; max-width: 650px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color: #003366; text-align: center; margin-bottom: 10px;">Simular Cobro</h2>
+        <p style="color: #666; text-align: center; margin-bottom: 30px;">Selecciona una tarjeta y define los detalles del cobro</p>
+
+        <form id="form-cobro">
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; color: #003366; font-weight: 600; font-size: 15px;">Tarjeta:</label>
+                <select id="tarjeta-select" required style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: white; cursor: pointer; transition: border-color 0.3s;">
+                    <option value="">-- Selecciona una tarjeta --</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; color: #003366; font-weight: 600; font-size: 15px;">Comercio:</label>
+                <input id="comercio" type="text" placeholder="Ej: Netflix, Amazon, Uber" required style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; color: #003366; font-weight: 600; font-size: 15px;">Monto:</label>
+                <input id="monto" type="number" step="0.01" min="0.01" placeholder="$0.00" required style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+            </div>
+
+            <button type="submit" class="btn btn-submit" style="width: 100%; padding: 16px; font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.3s;">Simular Cobro</button>
+        </form>
+
+        <div id="resultado"></div>
+    </section>
+
+    <!-- ALERTAS -->
+    <section style="background: white; padding: 30px; margin: 30px auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color: #003366; text-align: center; margin-bottom: 10px;">Alertas de Limite</h2>
+        <p style="color: #666; text-align: center; margin-bottom: 30px;">Visualiza alertas por limite de credito o cobros no procesados</p>
+        <div id="alertas-lista"></div>
+    </section>
+
+    <!-- BOTON VOLVER -->
+    <div class="menu">
+        <a href="index.html" class="btn">Volver al Inicio</a>
+    </div>
+</main>
+
+<!-- MODAL COMPROBANTE -->
+<div id="modal-comprobante" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 15px; max-width: 650px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; padding: 0;">
+        <button id="cerrar-modal" style="position: absolute; top: 15px; right: 15px; background: #ff4444; color: white; border: none; font-size: 26px; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; line-height: 1; font-weight: bold; z-index: 10000;">&times;</button>
+        <div id="comprobante-contenido"></div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 Ameribank · Proyecto academico Universidad Amerike</p>
+</footer>
+
+<script src="js/cobro.js"></script>
+</body>
+</html>

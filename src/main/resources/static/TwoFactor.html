@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>2FA</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width:640px; margin:2rem auto; }
+        .box { border:1px solid #ddd; padding:1rem; border-radius:6px; margin-bottom:1rem; }
+        .code { font-family: monospace; font-size:1.5rem; background:#f7f7f7; padding:.4rem .6rem; border-radius:4px; display:inline-block; }
+        #qr { margin-top: .6rem; }
+        .small { color:#666; font-size:.9rem; }
+        button { padding:.5rem .8rem; }
+    </style>
+</head>
+<body>
+<h2>AMERIBANK 2FA</h2>
+
+<div class="box">
+    <label><strong>Usuario ID:</strong>
+        <input id="usuarioId" type="number" value="1" style="width:80px" />
+    </label>
+    <button id="btnGenerate">Generar llave</button>
+    <div id="generateResult" style="margin-top:.6rem; display:none;">
+        <div>Llave 2FA: <span id="code" class="code"></span></div>
+        <div class="small">Expira en <span id="countdown">30</span> segundos.</div>
+        <div id="qr"></div>
+    </div>
+</div>
+
+<div class="box">
+    <label><strong>Ingresar llave:</strong>
+        <input id="verifyInput" type="text" style="width:160px" />
+    </label>
+    <button id="btnVerify">Verify</button>
+    <div id="verifyResult" style="margin-top:.6rem;"></div>
+</div>
+
+<script>
+    // CONFIG: setear url de springboot
+    const baseUrl = '';
+    const EXPIRES = 30; // tiene que igualar el valor en '' para el evento de sql
+
+    const btnGenerate = document.getElementById('btnGenerate');
+    const btnVerify = document.getElementById('btnVerify');
+    const usuarioIdEl = document.getElementById('usuarioId');
+    const generateResult = document.getElementById('generateResult');
+    const codeEl = document.getElementById('code');
+    const countdownEl = document.getElementById('countdown');
+    const qrEl = document.getElementById('qr');
+    const verifyInput = document.getElementById('verifyInput');
+    const verifyResult = document.getElementById('verifyResult');
+
+    let countdownTimer = null;
+
+    btnGenerate.addEventListener('click', async () => {
+      const usuarioId = Number(usuarioIdEl.value) || 1;
+      generateResult.style.display = 'none';
+      verifyResult.textContent = '';
+      try {
+        const resp = await fetch(baseUrl + '/api/2fa/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuarioId })
+        });
+        if (!resp.ok) {
+          const txt = await resp.text();
+          throw new Error('Server error: ' + txt);
+        }
+        const data = await resp.json();
+        showGenerated(data.code, data.expiresIn || EXPIRES, usuarioId);
+      } catch (err) {
+        generateResult.style.display = 'block';
+        codeEl.textContent = '—';
+        countdownEl.textContent = '0';
+        qrEl.innerHTML = '';
+        verifyResult.textContent = 'Error generando key: ' + err.message;
+      }
+    });
+
+    function showGenerated(code, expiresIn, usuarioId) {
+      codeEl.textContent = code;
+      generateResult.style.display = 'block';
+
+      // Marca el temporizador
+      clearInterval(countdownTimer);
+      let remaining = expiresIn;
+      countdownEl.textContent = String(remaining);
+      countdownTimer = setInterval(() => {
+        remaining--;
+        countdownEl.textContent = String(Math.max(0, remaining));
+        if (remaining <= 0) {
+          clearInterval(countdownTimer);
+        }
+      }, 1000);
+      verifyInput.value = '';
+    }
+
+    btnVerify.addEventListener('click', async () => {
+      const usuarioId = Number(usuarioIdEl.value) || 1;
+      const code = verifyInput.value.trim();
+      verifyResult.textContent = '';
+      if (!code) { verifyResult.textContent = 'Ingresa una clave.'; return; }
+      try {
+        const resp = await fetch(baseUrl + '/api/2fa/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuarioId, code })
+        });
+        if (resp.ok) {
+          const txt = await resp.text();
+          verifyResult.style.color = 'blue';
+          verifyResult.textContent = txt || 'LOL XD.';
+        } else if (resp.status === 401) {
+          const txt = await resp.text();
+          verifyResult.style.color = 'purple';
+          verifyResult.textContent = txt || 'Verificacion fallida o expirada.';
+        } else {
+          const txt = await resp.text();
+          verifyResult.style.color = 'purple';
+          verifyResult.textContent = 'Error: ' + txt;
+        }
+      } catch (err) {
+        verifyResult.style.color = 'purple';
+        verifyResult.textContent = 'Network error: ' + err.message;
+      }
+    });
+</script>
+</body>
+</html>
+
