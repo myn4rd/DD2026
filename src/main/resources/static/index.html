@@ -2,30 +2,243 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ameribank - Banca en Línea</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ameribank - Tu banco de confianza</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            color: #333;
+        }
+
+        /* NAV */
+        nav {
+            background: #003366;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .nav-logo {
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 1px;
+        }
+        .nav-logo span { color: #00cc99; }
+        .btn-login {
+            background: #00cc99;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .btn-login:hover { background: #009977; }
+
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #003366 0%, #0a4d8c 60%, #005599 100%);
+            color: white;
+            padding: 110px 60px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        .hero h1 span { color: #00cc99; }
+        .hero p {
+            font-size: 20px;
+            color: rgba(255,255,255,0.85);
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+        }
+        .btn-hero {
+            background: #00cc99;
+            color: white;
+            padding: 16px 48px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-block;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0,204,153,0.4);
+        }
+        .btn-hero:hover { background: #009977; transform: translateY(-2px); }
+
+        /* SERVICIOS */
+        .servicios {
+            padding: 80px 60px;
+            text-align: center;
+            background: white;
+        }
+        .servicios h2 {
+            font-size: 34px;
+            color: #003366;
+            margin-bottom: 10px;
+        }
+        .servicios .subtitulo {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 50px;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #f4f4f4;
+            border-radius: 12px;
+            padding: 36px 24px;
+            border-top: 4px solid #00cc99;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .card-icon {
+            font-size: 42px;
+            margin-bottom: 18px;
+        }
+        .card h3 { color: #003366; font-size: 18px; margin-bottom: 10px; }
+        .card p { color: #666; font-size: 14px; line-height: 1.6; }
+
+        /* STATS */
+        .stats {
+            background: #003366;
+            color: white;
+            padding: 60px;
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        .stat-item h3 { font-size: 42px; font-weight: 700; color: #00cc99; }
+        .stat-item p { font-size: 15px; color: rgba(255,255,255,0.8); margin-top: 6px; }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, #00cc99 0%, #009977 100%);
+            padding: 80px 60px;
+            text-align: center;
+            color: white;
+        }
+        .cta h2 { font-size: 36px; font-weight: 700; margin-bottom: 14px; }
+        .cta p { font-size: 17px; margin-bottom: 36px; opacity: 0.9; }
+        .btn-cta {
+            background: white;
+            color: #003366;
+            padding: 16px 48px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: 700;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+
+        /* FOOTER */
+        footer {
+            background: #001f3f;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            padding: 28px 20px;
+            font-size: 14px;
+        }
+        footer span { color: #00cc99; }
+    </style>
 </head>
 <body>
-<header>
-    <h1>Bienvenido a <span class="brand">Ameribank</span></h1>
-    <p>Simulador bancario de Universidad Amerike</p>
-</header>
 
-<main>
-    <div class="menu">
-        <a href="login.html" class="btn">Acceder a tu cuenta</a>
-        <a href="actualizar_cliente.html" class="btn">Actualizarse</a>
-        <a href="registro_cliente.html" class="btn">Clientes</a>
-        <a href="movimientos.html" class="btn">Movimientos</a>
-        <a href="registro_producto.html" class="btn">Productos</a>
-        <a href="cobros.html" class="btn">Cobros de Tarjeta</a>
+<!-- NAV -->
+<nav>
+    <div class="nav-logo">Ameri<span>bank</span></div>
+    <a href="login.html" class="btn-login">Iniciar Sesión</a>
+</nav>
 
+<!-- HERO -->
+<section class="hero">
+    <h1>Tu dinero, siempre<br><span>seguro y disponible</span></h1>
+    <p>Gestiona tus cuentas, realiza transferencias y controla tus finanzas desde cualquier lugar.</p>
+    <a href="login.html" class="btn-hero">Iniciar Sesión</a>
+</section>
 
+<!-- SERVICIOS -->
+<section class="servicios">
+    <h2>Nuestros Servicios</h2>
+    <p class="subtitulo">Todo lo que necesitas para manejar tus finanzas en un solo lugar</p>
+    <div class="cards">
+        <div class="card">
+            <div class="card-icon">💳</div>
+            <h3>Tarjetas de Crédito</h3>
+            <p>Administra tus tarjetas, consulta límites y realiza cobros de forma segura.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🔄</div>
+            <h3>Transferencias</h3>
+            <p>Envía dinero entre cuentas de forma instantánea con total seguridad.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">📊</div>
+            <h3>Historial de Movimientos</h3>
+            <p>Consulta depósitos, retiros y transferencias en tiempo real.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🔐</div>
+            <h3>Seguridad Avanzada</h3>
+            <p>Autenticación de dos factores y cifrado RSA para proteger tus datos.</p>
+        </div>
     </div>
-</main>
+</section>
 
+<!-- STATS -->
+<section class="stats">
+    <div class="stat-item">
+        <h3>+10K</h3>
+        <p>Clientes activos</p>
+    </div>
+    <div class="stat-item">
+        <h3>99.9%</h3>
+        <p>Disponibilidad del servicio</p>
+    </div>
+    <div class="stat-item">
+        <h3>256bit</h3>
+        <p>Cifrado de datos</p>
+    </div>
+    <div class="stat-item">
+        <h3>24/7</h3>
+        <p>Soporte en línea</p>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <h2>¿Listo para empezar?</h2>
+    <p>Accede a tu cuenta y toma el control de tus finanzas hoy mismo.</p>
+    <a href="login.html" class="btn-cta">Iniciar Sesión</a>
+</section>
+
+<!-- FOOTER -->
 <footer>
-    <p>&copy; 2025 Ameribank · Proyecto académico Universidad Amerike</p>
+    <p>&copy; 2025 <span>Ameribank</span> · Proyecto académico Universidad Amerike · Todos los derechos reservados</p>
 </footer>
+
 </body>
 </html>
