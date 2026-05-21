@@ -128,10 +128,27 @@ install_rhel() {
 }
 
 install_debian() {
-    log "Instalando mysql-server en Ubuntu/Debian..."
+    log "Instalando MySQL 8.0 en Ubuntu/Debian..."
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -q
-    apt-get install -y mysql-server mysql-client ufw
+    apt-get install -y gnupg curl ufw
+
+    # En Debian puro, 'apt install mysql-server' instala MariaDB, no MySQL.
+    # mysql-connector-j >=9.0 (Spring Boot 3.5) eliminó soporte para MariaDB.
+    # Solo en Debian (no Ubuntu) se agrega el repo oficial de MySQL.
+    if [[ "${ID:-}" == "debian" ]]; then
+        log "Debian detectado — agregando repositorio oficial de MySQL 8.0..."
+        curl -fsSL "https://repo.mysql.com/RPM-GPG-KEY-mysql-2023" \
+            | gpg --dearmor -o /usr/share/keyrings/mysql-archive-keyring.gpg
+        # Se usa 'bookworm' (Debian 12) como base: es la última versión en el
+        # repo de MySQL y sus paquetes son ABI-compatibles con Debian 13 (trixie).
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/mysql-archive-keyring.gpg] \
+http://repo.mysql.com/apt/debian bookworm mysql-8.0" \
+            > /etc/apt/sources.list.d/mysql.list
+        apt-get update -q
+    fi
+
+    DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server mysql-client
     systemctl enable --now mysql
 }
 
