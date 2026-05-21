@@ -187,9 +187,17 @@ SQL
 # Esto permite que tanto el principal como el backup conecten con las mismas credenciales
 # pero cada uno solo desde su propia IP (no '%').
 load_schema_and_user() {
-    [[ -f "$SQL_FILE" ]] || die "No existe el archivo SQL: $SQL_FILE"
-    log "Cargando esquema desde $SQL_FILE"
-    mysql -uroot -p"${ROOT_PASS}" < "$SQL_FILE"
+    local db_exists
+    db_exists=$(mysql -uroot -p"${ROOT_PASS}" -Nse \
+        "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}';" 2>/dev/null)
+
+    if [[ -z "$db_exists" ]]; then
+        [[ -f "$SQL_FILE" ]] || die "No existe el archivo SQL: $SQL_FILE"
+        log "Cargando esquema desde $SQL_FILE"
+        mysql -uroot -p"${ROOT_PASS}" < "$SQL_FILE"
+    else
+        log "Base de datos '${DB_NAME}' ya existe — saltando carga de esquema"
+    fi
 
     grant_host() {
         local host="$1" label="$2"
