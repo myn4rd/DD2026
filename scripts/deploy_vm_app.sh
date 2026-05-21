@@ -163,6 +163,7 @@ setup_logs() {
 
 # ---------- Clonar / actualizar repo ----------
 clone_repo() {
+    git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
     if [[ -d "$APP_DIR/.git" ]]; then
         log "Repo ya existe en $APP_DIR, haciendo git pull..."
         git -C "$APP_DIR" fetch --all
