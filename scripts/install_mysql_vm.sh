@@ -137,14 +137,23 @@ install_debian() {
     # mysql-connector-j >=9.0 (Spring Boot 3.5) eliminó soporte para MariaDB.
     # Solo en Debian (no Ubuntu) se agrega el repo oficial de MySQL.
     if [[ "${ID:-}" == "debian" ]]; then
-        log "Debian detectado — agregando repositorio oficial de MySQL 8.0..."
-        curl -fsSL "https://repo.mysql.com/RPM-GPG-KEY-mysql-2023" \
-            | gpg --dearmor -o /usr/share/keyrings/mysql-archive-keyring.gpg
-        # Se usa 'bookworm' (Debian 12) como base: es la última versión en el
-        # repo de MySQL y sus paquetes son ABI-compatibles con Debian 13 (trixie).
-        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/mysql-archive-keyring.gpg] \
-http://repo.mysql.com/apt/debian bookworm mysql-8.0" \
-            > /etc/apt/sources.list.d/mysql.list
+        log "Debian detectado — configurando repo oficial de MySQL 8.0 via mysql-apt-config..."
+        local tmpdir; tmpdir=$(mktemp -d)
+
+        # mysql-apt-config gestiona llaves y fuentes de MySQL automáticamente.
+        # RPM-GPG-KEY-mysql-2023 expiró oct-2025; este paquete incluye la llave vigente.
+        local mysql_apt_config_url="https://dev.mysql.com/get/mysql-apt-config_0.8.39-1_all.deb"
+        log "Descargando mysql-apt-config 0.8.39-1..."
+        curl -fsSL --connect-timeout 15 --max-time 60 \
+            -o "${tmpdir}/mysql-apt-config.deb" \
+            "$mysql_apt_config_url" \
+            || { rm -rf "$tmpdir"; die "No se pudo descargar mysql-apt-config desde ${mysql_apt_config_url}. Verifica conectividad o actualiza la URL en https://dev.mysql.com/downloads/repo/apt/"; }
+
+        # Pre-seleccionar MySQL 8.0 para evitar el menú interactivo de debconf
+        echo "mysql-apt-config mysql-apt-config/select-server select mysql-8.0" \
+            | debconf-set-selections
+        DEBIAN_FRONTEND=noninteractive dpkg -i "${tmpdir}/mysql-apt-config.deb" || true
+        rm -rf "$tmpdir"
         apt-get update -q
     fi
 
