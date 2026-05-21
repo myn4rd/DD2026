@@ -134,10 +134,10 @@ install_pkgs() {
             systemctl enable --now firewalld || warn "firewalld no arrancó"
             ;;
         debian)
-            log "Instalando openjdk-17-jdk, git, curl..."
+            log "Instalando default-jdk (Java 21 en Trixie), git, curl..."
             export DEBIAN_FRONTEND=noninteractive
             apt-get update -q
-            apt-get install -y openjdk-17-jdk git curl ufw
+            apt-get install -y default-jdk git curl ufw
             ;;
     esac
     java -version 2>&1 | head -1 | sed 's/^/[INFO]  Java: /'
