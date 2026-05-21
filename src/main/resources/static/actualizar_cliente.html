@@ -116,7 +116,7 @@
 
         <div id="mensaje" class="mensaje" style="display: none;"></div>
 
-        <form action="/api/clientes/actualizar" method="post" class="form-container">
+        <form id="actualizarForm" class="form-container">
             <div class="form-group">
                 <label for="clienteId">ID del Cliente</label>
                 <input type="text" id="clienteId" name="clienteId" readonly class="readonly">
@@ -202,13 +202,32 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                    💾 Actualizar Cliente
+                    Actualizar Cliente
                 </button>
                 <a href="/registro_cliente.html" class="btn btn-secondary">
                      Registrar Nuevo Cliente
                 </a>
             </div>
         </form>
+
+        <script>
+            document.getElementById('actualizarForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const params = new URLSearchParams(formData);
+                try {
+                    const response = await fetch('/api/clientes/actualizar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params
+                    });
+                    const texto = await response.text();
+                    mostrarMensaje(texto, response.ok ? 'success' : 'error');
+                } catch (err) {
+                    mostrarMensaje('Error de conexión con el servidor', 'error');
+                }
+            });
+        </script>
     </div>
 </div>
 </body>

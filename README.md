@@ -35,7 +35,7 @@ Antes de empezar, asegúrate de tener instalado:
 ```
 1. Abre IntelliJ IDEA
 2. File → New → Project from Version Control
-3. URL: https://github.com/TU_USUARIO/DDNOV2025.git
+3. URL: https://github.com/TU_USUARIO/DD2026.git
 4. Directory: Elige dónde guardar el proyecto
 5. Clone
 ```
@@ -48,8 +48,8 @@ IntelliJ detectará automáticamente que es un proyecto Maven y descargará depe
 # 1. Haz FORK del repo original en GitHub (botón arriba a la derecha)
 
 # 2. Clona TU fork (no el original)
-git clone git@github.com:TU_USUARIO/DDNOV2025.git
-cd DDNOV2025
+git clone git@github.com:TU_USUARIO/DD2026.git
+cd DD2026
 
 # 3. Abre en IntelliJ: File → Open → Selecciona la carpeta
 ```
@@ -61,13 +61,13 @@ En IntelliJ:
 1. Git → Manage Remotes (Ctrl+Shift+`)
 2. Click en "+"
 3. Name: upstream
-4. URL: https://github.com/DaFrik19/DDNOV2025.git
+4. URL: https://github.com/myn4rd/DD2026.git
 5. OK
 ```
 
 O desde terminal:
 ```bash
-git remote add upstream git@github.com:DaFrik19/DDNOV2025.git
+git remote add upstream git@github.com:myn4rd/DD2026.git
 git remote -v  # Verificar
 ```
 
@@ -271,9 +271,9 @@ git push origin feature/nombre-de-tu-modulo
 3. Verás un banner: **"Compare & pull request"**
 4. Asegúrate que sea:
    ```
-   base: DaFrik19/DDNOV2025:main
+   base: myn4rd/DD2026:main
    ←
-   compare: TU_USUARIO/DDNOV2025:feature/tu-rama
+   compare: TU_USUARIO/DD2026:feature/tu-rama
    ```
 5. Escribe un buen título y descripción
 6. **Espera aprobación** antes de hacer merge
@@ -564,9 +564,9 @@ Error: Web server failed to start. Port 8080 was already in use.
 
 ```bash
 # Setup inicial (una sola vez)
-git clone git@github.com:TU_USUARIO/DDNOV2025.git
-cd DDNOV2025
-git remote add upstream git@github.com:DaFrik19/DDNOV2025.git
+git clone git@github.com:TU_USUARIO/DD2026.git
+cd DD2026
+git remote add upstream git@github.com:myn4rd/DD2026.git
 
 # Antes de trabajar (SIEMPRE)
 git checkout main

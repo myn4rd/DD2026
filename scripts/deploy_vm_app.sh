@@ -44,7 +44,8 @@ DB_USER="ameribank"
 DB_PASS=""
 APP_PORT="8081"
 SVC_USER="ameribank"
-LOG_DIR=""           # Se establece tras parsear --role (ver abajo)
+SVC_HOME="/etc/ameribank"    # home fijo para usuario de sistema (sin home real)
+LOG_DIR=""                   # Se establece tras parsear --role (ver abajo)
 
 # Rango de IPs con acceso permitido al puerto de la app.
 # En VMs con NAT/bridge ajusta a la subred del hypervisor (ej. 192.168.1.0/24).
@@ -179,8 +180,10 @@ build() {
     if $SKIP_BUILD; then warn "Saltando build (--skip-build)"; return; fi
     log "Compilando con mvnw (1-3 min la primera vez)..."
     pushd "$APP_DIR" >/dev/null
-    # Compilar como el usuario de servicio para que los archivos queden con permisos correctos
-    sudo -u "$SVC_USER" ./mvnw -B -DskipTests clean package
+    # -Dmaven.repo.local evita que Maven intente escribir en ~/.m2/ de un usuario sin home real
+    sudo -u "$SVC_USER" \
+        MAVEN_OPTS="-Duser.home=${SVC_HOME}" \
+        ./mvnw -B -DskipTests -Dmaven.repo.local="${APP_DIR}/.m2" clean package
     popd >/dev/null
 
     local jar
@@ -207,18 +210,13 @@ check_db_connectivity() {
 
 # ---------- Configurar credenciales cifradas ----------
 setup_credentials() {
-    local secrets_dir
-    secrets_dir="$(eval echo "~${SVC_USER}")/.config/ameribank/secrets" 2>/dev/null \
-        || secrets_dir="/home/${SVC_USER}/.config/ameribank/secrets"
-    # Para usuario de sistema sin home, usar /etc
-    if [[ ! -d "$(dirname "$secrets_dir")" ]]; then
-        secrets_dir="/etc/ameribank/secrets"
-    fi
-
+    # Ruta fija derivada de SVC_HOME para que coincida con -Duser.home en systemd.
+    # Java construye: System.getProperty("user.home") + "/.config/ameribank/secrets"
+    local secrets_dir="${SVC_HOME}/.config/ameribank/secrets"
     local enc_file="${secrets_dir}/accesodbjava.enc"
 
     mkdir -p "$secrets_dir"
-    chown "$SVC_USER":"$SVC_USER" "$secrets_dir"
+    chown -R "$SVC_USER":"$SVC_USER" "$SVC_HOME"
     chmod 700 "$secrets_dir"
 
     if [[ -f "$enc_file" ]]; then
@@ -236,30 +234,49 @@ setup_credentials() {
         log "Modo interactivo: se pedirán las credenciales de BD."
         log "Cuando aparezca 'Cifrado finalizado', espera ~3s y presiona Ctrl+C."
         sudo -u "$SVC_USER" \
-            java -Ddb.host="$DB_HOST" -Ddb.port="$DB_PORT" \
-            -jar "$jar" || true
+            java -Duser.home="$SVC_HOME" \
+                 -Ddb.host="$DB_HOST" -Ddb.port="$DB_PORT" \
+                 -jar "$jar" || true
     else
         log "Modo no-interactivo, credenciales desde flags..."
         local tmplog
         tmplog=$(mktemp)
 
-        # Exportar a un subshell para que el PID quede accesible
-        sudo -u "$SVC_USER" bash -c "
-            cd '$APP_DIR'
-            printf '%s\n%s\n%s\n' '$DB_NAME' '$DB_USER' '$DB_PASS' \
-                | java -Ddb.host='$DB_HOST' -Ddb.port='$DB_PORT' -jar '$jar' \
-                >> '$tmplog' 2>&1 &
-            echo \$! > /tmp/ameribank-setup.pid
-            "
+        # Exportar variables para evitar problemas con caracteres especiales (comillas, espacios)
+        # dentro del heredoc del subshell de sudo.
+        export _AMB_DB_NAME="$DB_NAME" _AMB_DB_USER="$DB_USER" _AMB_DB_PASS="$DB_PASS" \
+               _AMB_DB_HOST="$DB_HOST" _AMB_DB_PORT="$DB_PORT" \
+               _AMB_JAR="$jar" _AMB_LOG="$tmplog" _AMB_HOME="$SVC_HOME" _AMB_DIR="$APP_DIR"
+
+        sudo -u "$SVC_USER" bash -s <<'INNER_SCRIPT'
+            cd "$_AMB_DIR"
+            printf '%s\n%s\n%s\n' "$_AMB_DB_NAME" "$_AMB_DB_USER" "$_AMB_DB_PASS" \
+                | java -Duser.home="$_AMB_HOME" \
+                       -Ddb.host="$_AMB_DB_HOST" -Ddb.port="$_AMB_DB_PORT" \
+                       -jar "$_AMB_JAR" >> "$_AMB_LOG" 2>&1 &
+            echo $! > /tmp/ameribank-setup.pid
+INNER_SCRIPT
+
+        # Esperar a que el subshell escriba el PID (evita race condition)
+        local wait_pid=0
+        while [[ ! -s /tmp/ameribank-setup.pid && $wait_pid -lt 10 ]]; do
+            sleep 0.5
+            wait_pid=$(( wait_pid + 1 ))
+        done
+        [[ -s /tmp/ameribank-setup.pid ]] || die "No se pudo obtener el PID del proceso Java"
 
         local pid; pid=$(cat /tmp/ameribank-setup.pid)
         local waited=0
         while [[ ! -f "$enc_file" && $waited -lt 60 ]]; do
-            sleep 1; ((waited++))
+            sleep 1
+            waited=$(( waited + 1 ))
         done
         kill "$pid" 2>/dev/null || true
-        wait "$pid" 2>/dev/null || true
         rm -f /tmp/ameribank-setup.pid
+
+        # Limpiar variables exportadas temporalmente
+        unset _AMB_DB_NAME _AMB_DB_USER _AMB_DB_PASS _AMB_DB_HOST _AMB_DB_PORT \
+              _AMB_JAR _AMB_LOG _AMB_HOME _AMB_DIR
 
         if [[ -f "$enc_file" ]]; then
             log "Credenciales cifradas en $enc_file"
@@ -282,12 +299,6 @@ install_systemd() {
     jar=$(find_jar)
     [[ -n "$jar" ]] || die "No hay .jar para el servicio systemd"
 
-    # Calcular el home del usuario de servicio para las credenciales
-    local svc_home
-    svc_home=$(getent passwd "$SVC_USER" | cut -d: -f6)
-    # Si no tiene home real, usamos /etc/ameribank
-    [[ -d "$svc_home" ]] || svc_home="/etc"
-
     local unit="/etc/systemd/system/ameribank.service"
     log "Escribiendo $unit"
     cat > "$unit" <<EOF
@@ -301,6 +312,7 @@ Type=simple
 User=${SVC_USER}
 WorkingDirectory=${APP_DIR}
 ExecStart=/usr/bin/java \\
+    -Duser.home=${SVC_HOME} \\
     -Ddb.host=${DB_HOST} \\
     -Ddb.port=${DB_PORT} \\
     -jar ${jar}
@@ -371,7 +383,7 @@ verify() {
     log "Esperando que el servicio responda en /actuator/health..."
     local tries=0
     until curl -sf "http://localhost:${APP_PORT}/actuator/health" >/dev/null 2>&1; do
-        ((tries++))
+        tries=$(( tries + 1 ))
         if (( tries > 30 )); then
             err "Health check sin respuesta después de 30s. Revisa:"
             err "  journalctl -u ameribank -n 50"

@@ -15,10 +15,55 @@
     <div class="menu">
         <a href="movimientos.html" class="btn">Movimientos</a>
         <a href="cobros.html" class="btn">Cobros de Tarjeta</a>
-
-
     </div>
+
+    <section style="max-width:500px; margin:30px auto; background:white; padding:30px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color:#003366; margin-bottom:16px;">Consultar Saldo de Cuenta</h2>
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+            <input id="inputCuenta" type="text" placeholder="Número de cuenta" required
+                   style="flex:1; padding:12px; border:1px solid #ddd; border-radius:6px; font-size:15px;">
+            <button onclick="consultarSaldo()" class="btn" style="white-space:nowrap;">Ver Saldo</button>
+        </div>
+        <div id="resultadoSaldo" style="padding:14px; border-radius:8px; display:none;"></div>
+        <button onclick="consultarEstado()" class="btn" style="width:100%; margin-top:10px; background:#0077b6;">Ver Estado Completo</button>
+        <pre id="resultadoEstado" style="display:none; margin-top:14px; background:#f8f9fa; padding:14px; border-radius:8px; white-space:pre-wrap; font-size:14px;"></pre>
+    </section>
 </main>
+
+<script>
+    async function consultarSaldo() {
+        const num = document.getElementById('inputCuenta').value.trim();
+        if (!num) return;
+        const div = document.getElementById('resultadoSaldo');
+        try {
+            const r = await fetch(`/api/cuentas/saldo?numeroCuenta=${encodeURIComponent(num)}`);
+            const txt = await r.text();
+            div.textContent = txt;
+            div.style.display = 'block';
+            div.style.background = r.ok ? '#d4edda' : '#f8d7da';
+            div.style.color = r.ok ? '#155724' : '#721c24';
+        } catch {
+            div.textContent = 'Error de conexión';
+            div.style.display = 'block';
+            div.style.background = '#f8d7da';
+            div.style.color = '#721c24';
+        }
+    }
+
+    async function consultarEstado() {
+        const num = document.getElementById('inputCuenta').value.trim();
+        if (!num) return;
+        const pre = document.getElementById('resultadoEstado');
+        try {
+            const r = await fetch(`/api/cuentas/estado?numeroCuenta=${encodeURIComponent(num)}`);
+            pre.textContent = await r.text();
+            pre.style.display = 'block';
+        } catch {
+            pre.textContent = 'Error de conexión';
+            pre.style.display = 'block';
+        }
+    }
+</script>
 
 <footer>
     <p>&copy; 2025 Ameribank · Proyecto académico Universidad Amerike</p>

@@ -54,6 +54,19 @@
         <h3>Resultado de Operación:</h3>
         <p>Esperando acción...</p>
     </div>
+
+    <hr>
+
+    <h2>3. Cargo / Pago a Tarjeta</h2>
+    <p>Monto positivo = cargo/compra. Monto negativo = pago/abono.</p>
+
+    <form id="transaccionForm">
+        <input type="text" name="numeroTarjeta" placeholder="Número de Tarjeta" required><br>
+        <input type="number" name="monto" step="0.01" placeholder="Monto (ej: 150.00 o -150.00)" required><br>
+        <button type="submit" style="background-color: #e67e00;">Procesar Transacción</button>
+    </form>
+
+    <div id="resultadoTransaccion" style="margin-top:12px; font-weight:bold;"></div>
 </div>
 
 <script>
@@ -132,6 +145,26 @@
                 }
             } catch (error) {
                 mostrarResultado("Error de Conexión", "No se pudo conectar para la consulta.", false);
+            }
+        });
+
+        // --- MANEJO DE TRANSACCIÓN (CARGO / PAGO) ---
+        document.getElementById('transaccionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const numeroTarjeta = encodeURIComponent(form.numeroTarjeta.value);
+            const monto = encodeURIComponent(form.monto.value);
+            const div = document.getElementById('resultadoTransaccion');
+            try {
+                const response = await fetch(`/api/productos/transaccion?numeroTarjeta=${numeroTarjeta}&monto=${monto}`, {
+                    method: 'POST'
+                });
+                const text = await response.text();
+                div.textContent = text;
+                div.style.color = response.ok ? 'green' : 'red';
+            } catch (error) {
+                div.textContent = 'Error de conexión con el servidor.';
+                div.style.color = 'red';
             }
         });
     });

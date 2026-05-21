@@ -22,8 +22,8 @@
 # Solo principal (sin backup):
 #   sudo ./install_mysql_vm.sh --principal-host 192.168.1.10
 #
-# Con subred completa (si ambas VMs están en la misma /24):
-#   sudo ./install_mysql_vm.sh --principal-host 192.168.1.0/24
+# NOTA: --principal-host y --backup-host deben ser IPs exactas (ej. 192.168.1.10).
+#       MySQL NO acepta notación CIDR en CREATE USER — usa IPs individuales.
 # =====================================================================
 
 set -euo pipefail
@@ -237,13 +237,13 @@ configure_firewall_debian() {
 
 # ---------- Verificación ----------
 verify() {
-    log "Verificando conexión local con usuario de app..."
-    # Usamos 127.0.0.1 porque el usuario está creado por IP de app, no 'localhost'
-    # Esta prueba verifica que las credenciales funcionan antes de que la VM-App conecte
-    local test_host="${PRINCIPAL_HOST:-${BACKUP_HOST}}"
-    mysql -u"${DB_USER}" -p"${DB_PASS}" -h 127.0.0.1 \
+    log "Verificando tablas cargadas en ${DB_NAME}..."
+    # Verificamos con root (local) que el esquema se cargó correctamente.
+    # El usuario de app no puede conectar desde 127.0.0.1 porque fue creado
+    # solo para las IPs de las VMs de app — esa prueba la hace cada VM-App.
+    mysql -uroot -p"${ROOT_PASS}" \
         -e "USE ${DB_NAME}; SELECT COUNT(*) AS tablas FROM information_schema.tables WHERE table_schema='${DB_NAME}';" \
-        2>/dev/null || warn "Conexión local como ${DB_USER} falló (normal si el usuario solo acepta IPs remotas)"
+        2>/dev/null || warn "No se pudo verificar el esquema con root"
 
     log "Verificando event_scheduler..."
     local sched
