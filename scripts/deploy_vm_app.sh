@@ -44,7 +44,7 @@ DB_USER="ameribank"
 DB_PASS=""
 APP_PORT="8081"
 SVC_USER="ameribank"
-SVC_HOME="/etc/ameribank"    # home fijo para usuario de sistema (sin home real)
+SVC_HOME="/home/ameribank"   # home del usuario de servicio
 LOG_DIR=""                   # Se establece tras parsear --role (ver abajo)
 
 # Rango de IPs con acceso permitido al puerto de la app.
@@ -149,8 +149,8 @@ create_svc_user() {
         log "Usuario '$SVC_USER' ya existe, continuando..."
         return
     fi
-    log "Creando usuario de sistema '$SVC_USER'..."
-    useradd --system --no-create-home --shell /sbin/nologin "$SVC_USER"
+    log "Creando usuario '$SVC_USER' con home en $SVC_HOME..."
+    useradd --create-home --home-dir "$SVC_HOME" --shell /sbin/nologin "$SVC_USER"
 }
 
 # ---------- Preparar directorio de logs ----------
