@@ -70,7 +70,7 @@ public class security {
 
         String dbHost = System.getProperty("db.host", "40.0.4.12");
         String dbPort = System.getProperty("db.port", "3306");
-        String datos = String.format("\"jdbc:mysql://%s:%s/%s\"|\"%s\"|\"%s\"", dbHost, dbPort, NombreBaseDeDatos, User, Password);
+        String datos = String.format("\"jdbc:mariadb://%s:%s/%s\"|\"%s\"|\"%s\"", dbHost, dbPort, NombreBaseDeDatos, User, Password);
         Cipher cifrador = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
         cifrador.init(Cipher.ENCRYPT_MODE, clavePublica);
         byte[] cifrado = cifrador.doFinal(datos.getBytes());

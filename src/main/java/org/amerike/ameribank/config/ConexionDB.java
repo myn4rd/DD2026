@@ -39,7 +39,7 @@ public class ConexionDB {
         cfg.setJdbcUrl(creds[0].replace("\"", ""));
         cfg.setUsername(creds[1].replace("\"", ""));
         cfg.setPassword(creds[2].replace("\"", ""));
-        cfg.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        cfg.setDriverClassName("org.mariadb.jdbc.Driver");
         cfg.setPoolName("AmeribankCP");
 
         cfg.setMaximumPoolSize(30);

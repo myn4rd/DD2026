@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # =====================================================================
-# Ameribank - Instalador de MySQL para VM dedicada (VM-DB)
+# Ameribank - Instalador de MariaDB para VM dedicada (VM-DB)
 #
 # Arquitectura objetivo (3 VMs):
 #   VM-Principal : Core bancario principal  → --principal-host <IP>
 #   VM-Backup    : Core bancario de respaldo → --backup-host <IP>
-#   VM-DB        : Esta VM — MySQL solo acepta conexiones de las dos anteriores
+#   VM-DB        : Esta VM — MariaDB solo acepta conexiones de las dos anteriores
 #
 # Diferencias vs install_mysql.sh (LXC):
 #   - --principal-host / --backup-host reemplazan el CIDR genérico '%'
-#     Los usuarios MySQL se crean solo para esas IPs exactas
+#     Los usuarios se crean solo para esas IPs exactas
 #   - Sin NFS: logs locales en /var/log/mysql/
 #   - Al menos uno de los dos hosts es obligatorio
 #
@@ -23,7 +23,7 @@
 #   sudo ./install_mysql_vm.sh --principal-host 192.168.1.10
 #
 # NOTA: --principal-host y --backup-host deben ser IPs exactas (ej. 192.168.1.10).
-#       MySQL NO acepta notación CIDR en CREATE USER — usa IPs individuales.
+#       MariaDB NO acepta notación CIDR en CREATE USER — usa IPs individuales.
 # =====================================================================
 
 set -euo pipefail
@@ -121,44 +121,18 @@ prompt_passwords() {
 
 # ---------- Instalar paquetes ----------
 install_rhel() {
-    log "Instalando mysql-server en Rocky/RHEL..."
-    dnf install -y mysql-server mysql firewalld
-    systemctl enable --now mysqld
+    log "Instalando mariadb-server en Rocky/RHEL..."
+    dnf install -y mariadb-server mariadb firewalld
+    systemctl enable --now mariadb
     systemctl enable --now firewalld || warn "firewalld no se pudo iniciar"
 }
 
 install_debian() {
-    log "Instalando MySQL 8.0 en Ubuntu/Debian..."
+    log "Instalando MariaDB en Ubuntu/Debian..."
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -q
-    apt-get install -y gnupg curl ufw
-
-    # En Debian puro, 'apt install mysql-server' instala MariaDB, no MySQL.
-    # mysql-connector-j >=9.0 (Spring Boot 3.5) eliminó soporte para MariaDB.
-    # Solo en Debian (no Ubuntu) se agrega el repo oficial de MySQL.
-    if [[ "${ID:-}" == "debian" ]]; then
-        log "Debian detectado — configurando repo oficial de MySQL 8.0 via mysql-apt-config..."
-        local tmpdir; tmpdir=$(mktemp -d)
-
-        # mysql-apt-config gestiona llaves y fuentes de MySQL automáticamente.
-        # RPM-GPG-KEY-mysql-2023 expiró oct-2025; este paquete incluye la llave vigente.
-        local mysql_apt_config_url="https://dev.mysql.com/get/mysql-apt-config_0.8.39-1_all.deb"
-        log "Descargando mysql-apt-config 0.8.39-1..."
-        curl -fsSL --connect-timeout 15 --max-time 60 \
-            -o "${tmpdir}/mysql-apt-config.deb" \
-            "$mysql_apt_config_url" \
-            || { rm -rf "$tmpdir"; die "No se pudo descargar mysql-apt-config desde ${mysql_apt_config_url}. Verifica conectividad o actualiza la URL en https://dev.mysql.com/downloads/repo/apt/"; }
-
-        # Pre-seleccionar MySQL 8.0 para evitar el menú interactivo de debconf
-        echo "mysql-apt-config mysql-apt-config/select-server select mysql-8.0" \
-            | debconf-set-selections
-        DEBIAN_FRONTEND=noninteractive dpkg -i "${tmpdir}/mysql-apt-config.deb" || true
-        rm -rf "$tmpdir"
-        apt-get update -q
-    fi
-
-    DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server mysql-client
-    systemctl enable --now mysql
+    apt-get install -y mariadb-server mariadb-client ufw
+    systemctl enable --now mariadb
 }
 
 # ---------- Configurar MySQL ----------
@@ -178,11 +152,11 @@ long_query_time   = 1
 EOF
     mkdir -p /var/log/mysql
     chown mysql:mysql /var/log/mysql
-    systemctl restart mysqld
+    systemctl restart mariadb
 }
 
 configure_mysql_debian() {
-    local cnf="/etc/mysql/mysql.conf.d/ameribank.cnf"
+    local cnf="/etc/mysql/mariadb.conf.d/ameribank.cnf"
     log "Escribiendo $cnf"
     cat > "$cnf" <<EOF
 [mysqld]
@@ -196,14 +170,14 @@ long_query_time   = 1
 EOF
     mkdir -p /var/log/mysql
     chown mysql:mysql /var/log/mysql
-    systemctl restart mysql
+    systemctl restart mariadb
 }
 
 # ---------- Asegurar root ----------
 secure_root() {
-    log "Configurando password de root MySQL..."
-    mysql --protocol=socket -uroot <<SQL || warn "No se pudo cambiar el plugin de root (puede ya estar configurado)"
-ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '${ROOT_PASS}';
+    log "Configurando password de root MariaDB..."
+    mysql --protocol=socket -uroot <<SQL || warn "No se pudo cambiar el password de root (puede ya estar configurado)"
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASS}';
 FLUSH PRIVILEGES;
 SQL
 }
